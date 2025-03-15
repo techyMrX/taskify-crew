@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { Task } from '@/lib/types';
-import { format, parseISO } from 'date-fns';
-import StatusBadge from './StatusBadge';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
+import StatusBadge from './StatusBadge';
+import { Task } from '@/lib/types';
 
 interface TaskCardProps {
   task: Task;
@@ -14,43 +14,36 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 animate-scale">
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="text-xs text-gray-500 mb-1">
-            {format(parseISO(task.date), 'MMMM d, yyyy')}
+    <Card className="card-hover">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1 mb-2">
+            <h3 className="font-medium text-lg line-clamp-2">{task.task}</h3>
+            <p className="text-sm text-gray-500">{task.date}</p>
           </div>
-          <h3 className="text-lg font-medium text-gray-800 mb-2">{task.task}</h3>
+          <StatusBadge status={task.status} />
         </div>
-        <StatusBadge status={task.status} />
-      </div>
-      
-      {task.remarks && (
-        <p className="text-sm text-gray-600 mt-2 mb-4">{task.remarks}</p>
-      )}
-      
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-        <div className="text-sm text-gray-600">{task.developer}</div>
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(task)}
-            className="h-8 px-2 text-gray-500 hover:text-primary"
-          >
-            <Pencil size={16} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(task.id)}
-            className="h-8 px-2 text-gray-500 hover:text-destructive"
-          >
-            <Trash2 size={16} />
-          </Button>
-        </div>
-      </div>
-    </div>
+        <p className="text-sm text-gray-600 mt-2">{task.remarks}</p>
+      </CardContent>
+      <CardFooter className="p-4 pt-0 flex justify-end space-x-2 border-t border-gray-100">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => onEdit(task)}
+          className="text-gray-500 hover:text-primary"
+        >
+          <Pencil className="h-4 w-4 mr-1" /> Edit
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => onDelete(task.id)}
+          className="text-gray-500 hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4 mr-1" /> Delete
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 

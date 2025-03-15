@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Leave, LeaveType, LeaveSession } from '@/lib/types';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -10,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CURRENT_USER } from '@/lib/data';
 import { toast } from 'sonner';
 
 interface AddLeaveModalProps {
@@ -37,16 +35,21 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
   });
 
   const [errors, setErrors] = useState<{
-    fromDate?: string;
-    toDate?: string;
     purpose?: string;
     noOfDays?: string;
   }>({});
 
   useEffect(() => {
     if (editLeave) {
-      const { id, status, ...leaveData } = editLeave;
-      setFormData(leaveData);
+      setFormData({
+        appliedDate: editLeave.appliedDate,
+        leaveType: editLeave.leaveType,
+        fromDate: editLeave.fromDate,
+        toDate: editLeave.toDate,
+        session: editLeave.session,
+        purpose: editLeave.purpose,
+        noOfDays: editLeave.noOfDays
+      });
     } else {
       setFormData({
         appliedDate: format(new Date(), 'yyyy-MM-dd'),
@@ -61,57 +64,41 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
     setErrors({});
   }, [editLeave, isOpen]);
 
-  const handleChange = (
+  const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    
-    if (name === 'noOfDays') {
-      const numValue = parseInt(value);
-      if (!isNaN(numValue) && numValue > 0) {
-        setFormData(prev => ({ ...prev, [name]: numValue }));
-      }
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
     
     // Clear error when user types
-    if (name in errors) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+    if (name === 'purpose' && errors.purpose) {
+      setErrors(prev => ({ ...prev, purpose: undefined }));
+    } else if (name === 'noOfDays' && errors.noOfDays) {
+      setErrors(prev => ({ ...prev, noOfDays: undefined }));
     }
   };
 
-  const handleDateChange = (name: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [name]: e.target.value }));
-    if (name in errors) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-    }
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleLeaveTypeChange = (value: string) => {
-    setFormData(prev => ({ ...prev, leaveType: value as LeaveType }));
+  const handleLeaveTypeChange = (value: LeaveType) => {
+    setFormData(prev => ({ ...prev, leaveType: value }));
   };
 
-  const handleSessionChange = (value: string) => {
-    setFormData(prev => ({ ...prev, session: value as LeaveSession }));
+  const handleSessionChange = (value: LeaveSession) => {
+    setFormData(prev => ({ ...prev, session: value }));
   };
 
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
     
-    if (!formData.fromDate) {
-      newErrors.fromDate = 'From date is required';
-    }
-    
-    if (!formData.toDate) {
-      newErrors.toDate = 'To date is required';
-    }
-    
     if (!formData.purpose.trim()) {
       newErrors.purpose = 'Purpose is required';
     }
     
-    if (formData.noOfDays <= 0) {
+    if (!formData.noOfDays || formData.noOfDays <= 0) {
       newErrors.noOfDays = 'Number of days must be greater than 0';
     }
     
@@ -122,7 +109,7 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
   const handleSubmit = () => {
     if (validateForm()) {
       onSave(formData);
-      toast.success(editLeave ? 'Leave updated successfully' : 'Leave request submitted');
+      toast.success(editLeave ? 'Leave request updated successfully' : 'Leave request submitted successfully');
       onClose();
     }
   };
@@ -143,18 +130,18 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
                   type="date" 
                   name="appliedDate"
                   value={formData.appliedDate}
-                  onChange={handleDateChange('appliedDate')}
+                  onChange={handleDateChange}
                   readOnly
                   className="bg-gray-50"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="leaveType">Leave Type</Label>
-                <Select
-                  value={formData.leaveType}
-                  onValueChange={handleLeaveTypeChange}
+                <Select 
+                  value={formData.leaveType} 
+                  onValueChange={(value: LeaveType) => handleLeaveTypeChange(value)}
                 >
-                  <SelectTrigger id="leaveType">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select leave type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -174,12 +161,8 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
                   type="date" 
                   name="fromDate"
                   value={formData.fromDate}
-                  onChange={handleDateChange('fromDate')}
-                  className={errors.fromDate ? "border-red-500" : ""}
+                  onChange={handleDateChange}
                 />
-                {errors.fromDate && (
-                  <p className="text-xs text-red-500 mt-1">{errors.fromDate}</p>
-                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="toDate">To Date</Label>
@@ -188,12 +171,8 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
                   type="date" 
                   name="toDate"
                   value={formData.toDate}
-                  onChange={handleDateChange('toDate')}
-                  className={errors.toDate ? "border-red-500" : ""}
+                  onChange={handleDateChange}
                 />
-                {errors.toDate && (
-                  <p className="text-xs text-red-500 mt-1">{errors.toDate}</p>
-                )}
               </div>
             </div>
 
@@ -201,7 +180,7 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
               <Label>Session</Label>
               <RadioGroup 
                 value={formData.session}
-                onValueChange={handleSessionChange}
+                onValueChange={(value: LeaveSession) => handleSessionChange(value)}
                 className="flex space-x-4"
               >
                 <div className="flex items-center space-x-2">
@@ -210,11 +189,11 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="FN" id="session-fn" />
-                  <Label htmlFor="session-fn" className="cursor-pointer">Forenoon (FN)</Label>
+                  <Label htmlFor="session-fn" className="cursor-pointer">Forenoon</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="AN" id="session-an" />
-                  <Label htmlFor="session-an" className="cursor-pointer">Afternoon (AN)</Label>
+                  <Label htmlFor="session-an" className="cursor-pointer">Afternoon</Label>
                 </div>
               </RadioGroup>
             </div>
@@ -225,8 +204,8 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
                 id="purpose" 
                 name="purpose"
                 value={formData.purpose}
-                onChange={handleChange}
-                placeholder="Enter purpose of leave"
+                onChange={handleInputChange}
+                placeholder="Enter the purpose of leave"
                 className={errors.purpose ? "border-red-500" : ""}
               />
               {errors.purpose && (
@@ -238,11 +217,12 @@ const AddLeaveModal: React.FC<AddLeaveModalProps> = ({
               <Label htmlFor="noOfDays">Number of Days</Label>
               <Input 
                 id="noOfDays" 
-                type="number" 
                 name="noOfDays"
-                value={formData.noOfDays}
-                onChange={handleChange}
-                min={1}
+                type="number"
+                min="0.5"
+                step="0.5"
+                value={formData.noOfDays.toString()}
+                onChange={handleInputChange}
                 className={errors.noOfDays ? "border-red-500" : ""}
               />
               {errors.noOfDays && (

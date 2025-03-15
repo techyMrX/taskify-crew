@@ -1,54 +1,38 @@
 
 import React from 'react';
-import { cn } from '@/lib/utils';
-import { TaskStatus } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
 
 interface StatusBadgeProps {
-  status: TaskStatus | 'APPROVED' | 'REJECTED' | 'PENDING';
-  className?: string;
+  status: 'DONE' | 'INPROGRESS' | 'ONHOLD' | 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
-  const getStatusStyles = () => {
-    switch (status) {
-      case 'DONE':
-        return 'bg-task-done text-white';
-      case 'INPROGRESS':
-        return 'bg-task-inprogress text-white';
-      case 'ONHOLD':
-        return 'bg-task-onhold text-white';
-      case 'PENDING':
-        return 'bg-task-pending text-white';
-      case 'APPROVED':
-        return 'bg-task-done text-white';
-      case 'REJECTED':
-        return 'bg-task-onhold text-white';
-      default:
-        return 'bg-gray-200 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = () => {
-    switch (status) {
-      case 'INPROGRESS':
-        return 'In Progress';
-      case 'ONHOLD':
-        return 'On Hold';
-      default:
-        return status.charAt(0) + status.slice(1).toLowerCase();
-    }
-  };
-
+const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+  let variant: "default" | "secondary" | "destructive" | "outline" = "default";
+  let className = "";
+  
+  switch (status) {
+    case 'DONE':
+    case 'APPROVED':
+      className = "bg-task-done text-white";
+      break;
+    case 'INPROGRESS':
+      className = "bg-task-inprogress text-white";
+      break;
+    case 'ONHOLD':
+    case 'REJECTED':
+      className = "bg-task-onhold text-white";
+      break;
+    case 'PENDING':
+      className = "bg-task-pending text-white";
+      break;
+    default:
+      variant = "outline";
+  }
+  
   return (
-    <span
-      className={cn(
-        'inline-block rounded-full px-2.5 py-0.5 text-xs font-medium',
-        getStatusStyles(),
-        className
-      )}
-    >
-      {getStatusLabel()}
-    </span>
+    <Badge variant={variant} className={className}>
+      {status}
+    </Badge>
   );
 };
 
