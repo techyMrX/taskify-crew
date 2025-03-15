@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
@@ -14,7 +13,7 @@ import AddLeaveModal from '@/components/AddLeaveModal';
 import { MOCK_TASKS, MOCK_LEAVES, TASK_STATS, CURRENT_USER } from '@/lib/data';
 import { Task, Leave } from '@/lib/types';
 import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -27,7 +26,6 @@ const Index = () => {
   const [editingLeave, setEditingLeave] = useState<Leave | undefined>(undefined);
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   
-  // Animation delay classes for staggered animations
   const animationDelays = [
     'animate-delay-1',
     'animate-delay-2',
@@ -422,7 +420,6 @@ const Index = () => {
         )}
       </div>
       
-      {/* Modals */}
       <AddTaskModal 
         isOpen={isAddTaskModalOpen} 
         onClose={() => setIsAddTaskModalOpen(false)} 
